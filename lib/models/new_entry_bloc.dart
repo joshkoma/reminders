@@ -34,4 +34,5 @@ class NewEntryBloc {
   void updateTime(String time) {
     _selectedTimeOfDay$!.add(time);
   }
+
 }

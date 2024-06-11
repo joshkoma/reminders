@@ -37,6 +37,7 @@ class _addReminderState extends State<addReminder> {
     dosageController = TextEditingController();
     _newEntryBloc = NewEntryBloc();
     _scaffoldKey = GlobalKey<ScaffoldState>();
+    initializeErrorListen(_newEntryBloc);
   }
 
   @override
@@ -65,6 +66,7 @@ class _addReminderState extends State<addReminder> {
               textAlign: TextAlign.left,
             ),
             TextFormField(
+              controller: nameController,
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
               ),
@@ -78,6 +80,8 @@ class _addReminderState extends State<addReminder> {
               textAlign: TextAlign.left,
             ),
             TextField(
+              controller: dosageController,
+              keyboardType: TextInputType.number,
               decoration: InputDecoration(border: OutlineInputBorder()),
             ),
             const SizedBox(
@@ -174,7 +178,7 @@ class _addReminderState extends State<addReminder> {
 
                   //schedule notification
 
-                  //print success message
+                  //print success message on snackbar
                 },
                 child: Text('confirm'))
           ],
@@ -196,6 +200,7 @@ class _intervalSelectionState extends State<intervalSelection> {
   var _selected = 0;
   @override
   Widget build(BuildContext context) {
+    // final NewEntryBloc newEntryBloc = Provider.of<NewEntryBloc>(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -217,6 +222,7 @@ class _intervalSelectionState extends State<intervalSelection> {
             onChanged: (newVal) {
               setState(() {
                 _selected = newVal!;
+                // newEntryBloc.updateInterval(newVal);
               });
             })
       ],
@@ -265,6 +271,39 @@ class _SelectTimeState extends State<SelectTime> {
           )),
     );
   }
+}
+
+void initializeErrorListen(NewEntryBloc _newEntryBloc) {
+  _newEntryBloc.errorState$!.listen((EntryError error) {
+    switch (error) {
+      case EntryError.nameNull:
+        displayError('Please Enter Medicine Name');
+        break;
+
+      case EntryError.nameDuplicate:
+        displayError('Medicine already exists');
+        break;
+
+      case EntryError.dosage:
+        displayError('Please enter the dosage required');
+        break;
+
+      case EntryError.interval:
+        displayError('Please select the reminder interval');
+        break;
+
+      case EntryError.startTime:
+        displayError('Please select the reminder start time');
+        break;
+      //show snackbar
+      default:
+    }
+  });
+}
+
+void displayError(String error) {
+  //ScaffoldMessenger.of(context).showSnackBar(
+  //content: Text(error), duration: Duration(milliseconds: 2000));
 }
 
 List<int> makeIDs(double n) {

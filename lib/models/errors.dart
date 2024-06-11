@@ -8,3 +8,5 @@ enum EntryError{
   none,
 
 }
+
+//save data via shared preferences
