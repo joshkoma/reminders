@@ -1,10 +1,47 @@
-import 'package:flutter/material.dart';
+import 'dart:ffi';
+import 'dart:math';
 
-class addReminder extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:reminders/global_bloc.dart';
+import 'package:reminders/models/convert_time.dart';
+import 'package:reminders/models/errors.dart';
+import 'package:reminders/models/medicine.dart';
+import 'package:reminders/models/new_entry_bloc.dart';
+
+class addReminder extends StatefulWidget {
   const addReminder({super.key});
 
   @override
+  State<addReminder> createState() => _addReminderState();
+}
+
+class _addReminderState extends State<addReminder> {
+  late TextEditingController nameController;
+  late TextEditingController dosageController;
+  late NewEntryBloc _newEntryBloc;
+  late GlobalKey<ScaffoldState> _scaffoldKey;
+
+  @override
+  void dispose() {
+    super.dispose();
+    nameController.dispose();
+    dosageController.dispose();
+    _newEntryBloc.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    nameController = TextEditingController();
+    dosageController = TextEditingController();
+    _newEntryBloc = NewEntryBloc();
+    _scaffoldKey = GlobalKey<ScaffoldState>();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.lightGreen,
@@ -66,6 +103,80 @@ class addReminder extends StatelessWidget {
               textAlign: TextAlign.left,
             ),
             const intervalSelection(),
+            SizedBox(
+              height: 20,
+            ),
+            Text(
+              'Starting time*',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.left,
+            ),
+            const SelectTime(),
+            //select medicine on press
+            ElevatedButton(
+                onPressed: () {
+                  //add medcine
+                  String? medicineName;
+                  int? dosage;
+                  //name controller check
+                  if (nameController.text == '') {
+                    _newEntryBloc.submitError(EntryError.nameNull);
+                    return;
+                  }
+                  if (nameController.text != '') {
+                    medicineName = nameController.text;
+                  }
+
+                  //dosage controller check
+                  if (dosageController.text == '') {
+                    dosage = 0;
+                    return;
+                  }
+                  if (nameController.text != '') {
+                    dosage = int.parse(dosageController.text);
+                  }
+                  for (var medicine in globalBloc.medicineList!.value) {
+                    if (medicineName == medicine.medicineName) {
+                      _newEntryBloc.submitError(EntryError.nameDuplicate);
+                      return;
+                    }
+                  }
+                  if (_newEntryBloc.selectedIntervals!.value == 0) {
+                    _newEntryBloc.submitError(EntryError.interval);
+                    return;
+                  }
+
+                  if (_newEntryBloc.selectedTimeOfDay!.value == 'None') {
+                    _newEntryBloc.submitError(EntryError.startTime);
+                    return;
+                  }
+
+                  int interval = _newEntryBloc.selectedIntervals!.value;
+                  String startTime = _newEntryBloc.selectedTimeOfDay!.value;
+
+                  List<int> intIDs =
+                      makeIDs(24 / _newEntryBloc.selectedIntervals!.value);
+                  List<String> notificationIDs =
+                      intIDs.map((i) => i.toString()).toList();
+
+                  Medicine newEntryMedicine = Medicine(
+                    notificationIDs: notificationIDs,
+                    medicineName: medicineName,
+                    dosage: dosage,
+                    interval: interval.toString(),
+                    startTime: startTime,
+                  );
+
+                  //update medicine list via global bloc
+                  globalBloc.updateMedicineList(
+                    newEntryMedicine,
+                  );
+
+                  //schedule notification
+
+                  //print success message
+                },
+                child: Text('confirm'))
           ],
         ),
       ),
@@ -86,6 +197,7 @@ class _intervalSelectionState extends State<intervalSelection> {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -110,4 +222,56 @@ class _intervalSelectionState extends State<intervalSelection> {
       ],
     );
   }
+}
+
+class SelectTime extends StatefulWidget {
+  const SelectTime({super.key});
+
+  @override
+  State<SelectTime> createState() => _SelectTimeState();
+}
+
+class _SelectTimeState extends State<SelectTime> {
+  TimeOfDay _time = const TimeOfDay(hour: 0, minute: 00);
+  bool clicked = false;
+
+  Future<TimeOfDay> _selectedTime() async {
+    final TimeOfDay? picked =
+        await showTimePicker(context: context, initialTime: _time);
+
+    if (picked != null && picked != _time) {
+      setState(() {
+        _time = picked;
+        clicked = true;
+        //update state via provider
+      });
+    }
+    return picked!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      child: TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: Color(0xff9cc224),
+          ),
+          onPressed: _selectedTime,
+          child: Text(
+            clicked == false
+                ? 'Select start time'
+                : '${convertTime(_time.hour.toString())}:${convertTime(_time.minute.toString())}',
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          )),
+    );
+  }
+}
+
+List<int> makeIDs(double n) {
+  var rng = Random();
+  List<int> ids = [];
+  for (int i = 0; i < n; i++) {
+    ids.add(rng.nextInt(1000000000));
+  }
+  return ids;
 }
