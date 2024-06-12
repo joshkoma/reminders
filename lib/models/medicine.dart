@@ -2,7 +2,7 @@ class Medicine {
   final List<dynamic>? notificationIDs;
   final String? medicineName;
   final int? dosage;
-  final String? interval;
+  final int? interval;
   final String? startTime;
 
   Medicine(
@@ -15,7 +15,7 @@ class Medicine {
   //getters
   String get getName => medicineName!;
   int get getDosage => dosage!;
-  String get getInterval => interval!;
+  int get getInterval => interval!;
   String get getStartime => startTime!;
   List<dynamic> get getIDs => notificationIDs!;
 
@@ -36,10 +36,6 @@ class Medicine {
       dosage: parsedJson['dosage'],
       interval: parsedJson['interval'],
       startTime: parsedJson['start'],
-      
-      
-      
-      
-      );
+    );
   }
 }

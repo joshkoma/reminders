@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:reminders/global_bloc.dart';
-import 'package:reminders/models/add_medicine.dart';
+import 'package:reminders/models/new_entry.dart';
 import 'package:reminders/models/medicine.dart';
 import 'package:reminders/screens/medicine_details.dart';
 
@@ -11,7 +11,7 @@ class reminders extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
+    // final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
@@ -46,36 +46,17 @@ class reminders extends StatelessWidget {
             ),
 
             //return medicine count from sharedpreferences
-            StreamBuilder<List<Medicine>>(
-                stream: globalBloc.medicineList,
-                builder: ((context, snapshot) {
-                  return Container(
-                    alignment: Alignment.center,
-                    child: Text(
-                      snapshot.hasData ? '0' : snapshot.data!.length.toString(),
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  );
-                })),
+            TopContainer(),
 
             Flexible(
-                child: MedicineCard(
-              //should input value of snapshot which does not seem to be
-              medicine: Medicine(),
-            ))
-
-            /*Flexible(
-                child: Center(
-                  child: Text('No medicine',
-                  style: Theme.of(context).textTheme.bodyLarge,),
-                ),
-              ),*/
+              child: BottomContainer(),
+            )
           ],
         ),
         floatingActionButton: GestureDetector(
           onTap: () {
             Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const addReminder()));
+                MaterialPageRoute(builder: (context) => const NewEntryPage()));
           }, //add entries on  tap
           child: Card(
             elevation: 8,
@@ -96,27 +77,96 @@ class reminders extends StatelessWidget {
 class MedicineCard extends StatelessWidget {
   const MedicineCard({Key? key, required this.medicine}) : super(key: key);
   final Medicine medicine;
+  //to get current saved items
+
+  @override
+  Widget build(BuildContext context) {
+    //use conditions to check shared preferences and dispaly data
+    // final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: ((context) => MedicineDetails(medicine))));
+      },
+      child: Container(
+        margin: EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
+        color: Color(0xff888888),
+        width: 20,
+        height: 20,
+        child: Column(
+          children: [
+            Text(
+              medicine.medicineName!,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            Text(
+              medicine.dosage!.toString(),
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            Text(
+              medicine.interval == 1
+                  ? 'Every ${medicine.interval} Hour'
+                  : 'Every ${medicine.interval} Hours',
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleLarge,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//top container class with medicine count
+class TopContainer extends StatelessWidget {
+  const TopContainer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
+    return StreamBuilder<List<Medicine>>(
+        stream: globalBloc.medicineList$,
+        builder: (context, snapshot) {
+          return Column(
+            children: [
+              Container(
+                alignment: Alignment.center,
+                child: Text(
+                  !snapshot.hasData ? '0' : snapshot.data!.length.toString(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    print(snapshot.data!.length.toString());              
+                  },
+                  child: Text('Data save test')),
+            ],
+          );
+        });
+  }
+}
+
+//bottom container
+class BottomContainer extends StatelessWidget {
+  const BottomContainer({super.key});
 
   @override
   Widget build(BuildContext context) {
     final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
     return StreamBuilder(
-        stream: globalBloc.medicineList,
+        stream: globalBloc.medicineList$,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             //if no data saved
             return Container();
           } else if (snapshot.data!.isEmpty) {
-            return Center(
-              child: TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MedicineDetails()));
-                  },
-                  child: Text('No Medicine')),
-            );
+            return Center(child: Text('No Medicine'));
           } else {
             return GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -124,35 +174,8 @@ class MedicineCard extends StatelessWidget {
               ),
               itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MedicineDetails()));
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(12),
-                    width: 20,
-                    height: 20,
-                    child: Column(
-                      children: [
-                        Text(
-                          medicine.medicineName!,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          medicine.dosage!.toString(),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          medicine.interval.toString(),
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ],
-                    ),
-                  ),
-                );
+                return MedicineCard(medicine: snapshot.data![index]);
+                //
               },
             );
           }

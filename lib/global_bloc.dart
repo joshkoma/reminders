@@ -1,13 +1,11 @@
 import 'dart:convert';
-
-import 'package:flutter/material.dart';
 import 'package:reminders/models/medicine.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class GlobalBloc {
   BehaviorSubject<List<Medicine>>? _medicineList$;
-  BehaviorSubject<List<Medicine>>? get medicineList => _medicineList$;
+  BehaviorSubject<List<Medicine>>? get medicineList$ => _medicineList$;
 
   GlobalBloc() {
     _medicineList$ = BehaviorSubject<List<Medicine>>.seeded([]);
