@@ -38,6 +38,7 @@ dependencies:
   rxdart: 
   provider:
   shared_preferences:
+  flutter_local_notifications:
 
 dev_dependencies:
   flutter_test:

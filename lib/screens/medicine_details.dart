@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:reminders/global_bloc.dart';
 import 'package:reminders/models/medicine.dart';
 
 class MedicineDetails extends StatefulWidget {
@@ -12,6 +14,7 @@ class MedicineDetails extends StatefulWidget {
 class _MedicineDetailsState extends State<MedicineDetails> {
   @override
   Widget build(BuildContext context) {
+    final GlobalBloc _globalBloc = Provider.of<GlobalBloc>(context);
     final medicine = widget.medicine;
     return Scaffold(
       appBar: AppBar(
@@ -22,30 +25,32 @@ class _MedicineDetailsState extends State<MedicineDetails> {
         ),
       ),
       body: Column(
-        
         children: [
           SizedBox(
             height: 16,
           ),
-          Text(medicine!.medicineName!), 
+          Text(medicine!.medicineName!),
           SizedBox(
             height: 16,
           ),
-          Text(medicine.dosage == 0 ? 'Not specified' : medicine.dosage.toString()+' mg'),
+          Text(medicine.dosage == 0
+              ? 'Not specified'
+              : medicine.dosage.toString() + ' mg'),
           SizedBox(
             height: 16,
           ),
 
-          //set condition for text display
           Text(medicine.interval.toString()),
-           //set condition for text display
-          Text(medicine.startTime![0]+ ':'+medicine.startTime![1]+ 'am'),
+          //set condition for text display
+          Text('${medicine.startTime![0]}${medicine.startTime![1]} :'
+                  '${medicine.startTime![2]}${medicine.startTime![3]}' +
+              ' am'),
           SizedBox(
             height: 16,
           ),
           ElevatedButton(
               onPressed: () {
-                openAlertBox(context);
+                openAlertBox(context, _globalBloc, medicine);
               },
               child: Text('Delete'))
         ],
@@ -54,7 +59,7 @@ class _MedicineDetailsState extends State<MedicineDetails> {
   }
 }
 
-openAlertBox(BuildContext context) {
+openAlertBox(BuildContext context, GlobalBloc _globalBloc, Medicine? medicine) {
   return showDialog(
       context: context,
       builder: (context) {
@@ -69,6 +74,8 @@ openAlertBox(BuildContext context) {
             TextButton(
                 onPressed: () {
                   //global bloc to delete medicine
+                  _globalBloc.removeMedicine(medicine!);
+                  Navigator.popUntil(context, ModalRoute.withName('/'));
                 },
                 child: Text('Delete'))
           ],

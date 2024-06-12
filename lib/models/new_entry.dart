@@ -1,12 +1,13 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
 import 'package:reminders/global_bloc.dart';
 import 'package:reminders/models/convert_time.dart';
 import 'package:reminders/models/errors.dart';
 import 'package:reminders/models/medicine.dart';
 import 'package:reminders/models/new_entry_bloc.dart';
+import 'package:reminders/screens/reminders.dart';
 
 class NewEntryPage extends StatefulWidget {
   const NewEntryPage({super.key});
@@ -18,6 +19,7 @@ class NewEntryPage extends StatefulWidget {
 class _NewEntryPageState extends State<NewEntryPage> {
   late TextEditingController nameController;
   late TextEditingController dosageController;
+  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
   late NewEntryBloc _newEntryBloc;
   late GlobalKey<ScaffoldState> _scaffoldKey;
 
@@ -34,9 +36,11 @@ class _NewEntryPageState extends State<NewEntryPage> {
     super.initState();
     nameController = TextEditingController();
     dosageController = TextEditingController();
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     _newEntryBloc = NewEntryBloc();
     _scaffoldKey = GlobalKey<ScaffoldState>();
     initializeErrorListen(_newEntryBloc);
+    initializeNotifications();
   }
 
   @override
@@ -178,6 +182,7 @@ class _NewEntryPageState extends State<NewEntryPage> {
                     );
 
                     //schedule notification
+                    scheduleNotification(newEntryMedicine);
 
                     //print success message on snackbar
                   },
@@ -187,6 +192,56 @@ class _NewEntryPageState extends State<NewEntryPage> {
         ),
       ),
     );
+  }
+
+  initializeNotifications() async {
+    var initializationSettingsAndroid =
+        const AndroidInitializationSettings('assets/images/logo.png');
+    var initializationSettingsIOS = const DarwinInitializationSettings();
+    var initializationSettings = InitializationSettings(
+        iOS: initializationSettingsIOS, android: initializationSettingsAndroid);
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  Future onSelectNotification(String? payload) async {
+    if (payload != null) {
+      debugPrint('notification payload: $payload');
+    }
+    await Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const reminders()));
+  }
+
+  Future<void> scheduleNotification(Medicine medicine) async {
+    var hour = int.parse(medicine.startTime![0] + medicine.startTime![1]);
+    var ogValue = hour;
+    var minute = int.parse(medicine.startTime![2] + medicine.startTime![3]);
+
+    var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
+        'repeatDailyAtTime channel id', 'repeatDailyAtTime channel name',
+        importance: Importance.max);
+
+    var iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
+
+    var platformChannelSpecifics = NotificationDetails(
+        android: androidPlatformChannelSpecifics,
+        iOS: iOSPlatformChannelSpecifics);
+
+    for (int i = 0; i < (24 / medicine.interval!.floor()); i++) {
+      if (hour + (medicine.interval! * i) > 23) {
+        hour = hour + (medicine.interval! * i - 24);
+      } else {
+        hour = hour + (medicine.interval! * i);
+      }
+      await flutterLocalNotificationsPlugin.periodicallyShow(
+          int.parse(medicine.notificationIDs![i]),
+          'Reminder: ${medicine.medicineName}',
+          'It is time to take your medicine',
+          RepeatInterval.everyMinute, //check minute 11 of local notification
+          platformChannelSpecifics);
+
+      hour = ogValue;
+    }
   }
 }
 
@@ -244,6 +299,8 @@ class _SelectTimeState extends State<SelectTime> {
   bool clicked = false;
 
   Future<TimeOfDay> _selectedTime() async {
+    final NewEntryBloc newEntryBloc =
+        Provider.of<NewEntryBloc>(context, listen: false);
     final TimeOfDay? picked =
         await showTimePicker(context: context, initialTime: _time);
 
@@ -251,9 +308,9 @@ class _SelectTimeState extends State<SelectTime> {
       setState(() {
         _time = picked;
         clicked = true;
-        //update state via provider
-        final newEntryBloc = Provider.of<NewEntryBloc>(context, listen: false);
-        newEntryBloc.updateTime('${_time.hour}:${_time.minute}');
+       
+
+        newEntryBloc.updateTime(convertTime(_time.hour.toString())+convertTime(_time.minute.toString()));
       });
     }
     return picked!;
