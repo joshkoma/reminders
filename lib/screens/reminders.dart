@@ -90,32 +90,35 @@ class MedicineCard extends StatelessWidget {
             MaterialPageRoute(
                 builder: ((context) => MedicineDetails(medicine))));
       },
-      child: Container(
-        margin: EdgeInsets.all(16),
-        padding: EdgeInsets.all(16),
-        color: Color(0xff888888),
-        width: 20,
-        height: 20,
-        child: Column(
-          children: [
-            Text(
-              medicine.medicineName!,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(
-              medicine.dosage!.toString(),
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(
-              medicine.interval == 1
-                  ? 'Every ${medicine.interval} Hour'
-                  : 'Every ${medicine.interval} Hours',
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleLarge,
-            )
-          ],
+      child: Material(
+        elevation: 4,
+        child: Container(
+          margin: EdgeInsets.all(16),
+          padding: EdgeInsets.all(16),
+          width: 20,
+          height: 20,
+          child: Column(
+            children: [
+              Icon(Icons.medication),
+              Text(
+                medicine.medicineName!,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Text(
+                medicine.dosage!.toString(),
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              Text(
+                medicine.interval == 1
+                    ? 'Every ${medicine.interval} Hour'
+                    : 'Every ${medicine.interval} Hours',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge,
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -143,7 +146,7 @@ class TopContainer extends StatelessWidget {
               ),
               ElevatedButton(
                   onPressed: () {
-                    print(snapshot.data!.length.toString());              
+                    print(snapshot.data!.length.toString());
                   },
                   child: Text('Data save test')),
             ],
