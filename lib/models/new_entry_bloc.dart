@@ -26,6 +26,7 @@ class NewEntryBloc {
   }
 
   void dispose() {
+    _selectedMedicineType$!.close();
     _selectedTimeOfDay$!.close();
     _selectedInterval$!.close();
   }

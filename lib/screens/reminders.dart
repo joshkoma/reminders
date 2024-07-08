@@ -11,8 +11,7 @@ class reminders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
-    return SafeArea(
-      child: Scaffold(
+      return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.lightGreen,
           title: Text(
@@ -68,8 +67,8 @@ class reminders extends StatelessWidget {
             color: Color(0xff9cc224),
           ),
         ),
-      ),
-    );
+      );
+    
   }
 }
 

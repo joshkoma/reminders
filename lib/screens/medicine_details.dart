@@ -54,7 +54,7 @@ class _MedicineDetailsState extends State<MedicineDetails> {
           //     ' am'),
           Text(medicine?.startTime != null
               ? '${medicine!.startTime![0]}${medicine.startTime![1]} :'
-                  '${medicine.startTime![2]}${medicine.startTime![3]} am'
+                  '${medicine.startTime![2]}${medicine.startTime![3]} '
               : 'Not specified'), //start time null safety
 
           SizedBox(

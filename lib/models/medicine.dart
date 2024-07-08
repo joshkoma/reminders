@@ -35,7 +35,7 @@ class Medicine {
       medicineName: parsedJson['name'],
       dosage: parsedJson['dosage'],
       interval: parsedJson['interval'],
-      startTime: parsedJson['start'],
+      startTime: parsedJson['startTime'],
     );
   }
 }

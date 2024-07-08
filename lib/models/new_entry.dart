@@ -62,7 +62,8 @@ class _NewEntryPageState extends State<NewEntryPage> {
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: SingleChildScrollView(
-            physics: BouncingScrollPhysics(),
+            physics: BouncingScrollPhysics(
+                decelerationRate: ScrollDecelerationRate.fast),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,6 +176,8 @@ class _NewEntryPageState extends State<NewEntryPage> {
                       int interval = _newEntryBloc.selectedInterval$!.value;
                       String startTime =
                           _newEntryBloc.selectedTimeOfDay$!.value;
+                      print('start time: ' +
+                          startTime); //print statement to view start time ==> obtained correctly
 
                       List<int> intIDs =
                           makeIDs(24 / _newEntryBloc.selectedInterval$!.value);
@@ -197,6 +200,8 @@ class _NewEntryPageState extends State<NewEntryPage> {
 
                       //schedule notification
                       scheduleNotification(newEntryMedicine);
+                      print(
+                          'Medicine saved successfully!'); // status print notification
 
                       //print success message on snackbar
                     },
@@ -248,12 +253,14 @@ class _NewEntryPageState extends State<NewEntryPage> {
       } else {
         hour = hour + (medicine.interval! * i);
       }
-      await flutterLocalNotificationsPlugin.periodicallyShow(
-          int.parse(medicine.notificationIDs![i]),
+      await flutterLocalNotificationsPlugin.show(
+          0225,
+          // int.parse(medicine.notificationIDs![i]),
           'Reminder: ${medicine.medicineName}',
           'It is time to take your medicine',
-          RepeatInterval.everyMinute, //check minute 11 of local notification
           platformChannelSpecifics);
+      // RepeatInterval.everyMinute, //check minute 11 of local notification
+      // platformChannelSpecifics);
 
       hour = ogValue;
     }
@@ -329,6 +336,7 @@ class _SelectTimeState extends State<SelectTime> {
             convertTime(_time.minute.toString()));
       });
     }
+    //picked cannot be null
     return picked!;
   }
 
