@@ -29,22 +29,34 @@ class _MedicineDetailsState extends State<MedicineDetails> {
           SizedBox(
             height: 16,
           ),
-          Text(medicine!.medicineName!),
+          // Text(medicine!.medicineName!),
+          Text(medicine?.medicineName ?? 'Unknown'), //added null check
           SizedBox(
             height: 16,
           ),
-          Text(medicine.dosage == 0
+          // Text(medicine.dosage == 0
+          //     ? 'Not specified'
+          //     : medicine.dosage.toString() + ' mg'),
+          Text(medicine?.dosage == 0
               ? 'Not specified'
-              : medicine.dosage.toString() + ' mg'),
+              : '${medicine?.dosage} mg'), //added null safety support
+
           SizedBox(
             height: 16,
           ),
 
-          Text(medicine.interval.toString()),
+          // Text(medicine.interval.toString()),
+          Text(medicine?.interval?.toString() ??
+              'Not specified'), //interval null safety
           //set condition for text display
-          Text('${medicine.startTime![0]}${medicine.startTime![1]} :'
-                  '${medicine.startTime![2]}${medicine.startTime![3]}' +
-              ' am'),
+          // Text('${medicine.startTime![0]}${medicine.startTime![1]} :'
+          //         '${medicine.startTime![2]}${medicine.startTime![3]}' +
+          //     ' am'),
+          Text(medicine?.startTime != null
+              ? '${medicine!.startTime![0]}${medicine.startTime![1]} :'
+                  '${medicine.startTime![2]}${medicine.startTime![3]} am'
+              : 'Not specified'), //start time null safety
+
           SizedBox(
             height: 16,
           ),

@@ -34,19 +34,21 @@ class _NewEntryPageState extends State<NewEntryPage> {
   @override
   void initState() {
     super.initState();
+    _newEntryBloc = NewEntryBloc();
     nameController = TextEditingController();
     dosageController = TextEditingController();
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     _newEntryBloc = NewEntryBloc();
     _scaffoldKey = GlobalKey<ScaffoldState>();
-    initializeErrorListen(_newEntryBloc);
     initializeNotifications();
+    initializeErrorListen(_newEntryBloc);
   }
 
   @override
   Widget build(BuildContext context) {
     final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.lightGreen,
         title: Text(
@@ -59,135 +61,148 @@ class _NewEntryPageState extends State<NewEntryPage> {
         value: _newEntryBloc,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(
-                height: 20,
-              ),
-              Text(
-                'Name of medicine *:',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.left,
-              ),
-              TextFormField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+          child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(
+                  height: 20,
                 ),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Text(
-                'Dosage (mg):',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.left,
-              ),
-              TextField(
-                controller: dosageController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(border: OutlineInputBorder()),
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Text(
-                'Additional Notes:',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.left,
-              ),
-              TextFormField(
-                maxLines: 3,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
+                Text(
+                  'Name of medicine *:',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.left,
                 ),
-              ),
-              const SizedBox(
-                height: 30,
-              ),
-              Text(
-                'Select interval *:',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.left,
-              ),
-              const intervalSelection(),
-              SizedBox(
-                height: 20,
-              ),
-              Text(
-                'Starting time*',
-                style: Theme.of(context).textTheme.titleMedium,
-                textAlign: TextAlign.left,
-              ),
-              const SelectTime(),
-              //select medicine on press
-              ElevatedButton(
-                  onPressed: () {
-                    //add medcine
-                    String? medicineName;
-                    int? dosage;
-                    //name controller check
-                    if (nameController.text == '') {
-                      _newEntryBloc.submitError(EntryError.nameNull);
-                      return;
-                    }
-                    if (nameController.text != '') {
-                      medicineName = nameController.text;
-                    }
-
-                    //dosage controller check
-                    if (dosageController.text == '') {
-                      dosage = 0;
-                    }
-                    if (nameController.text != '') {
-                      dosage = int.parse(dosageController.text);
-                    }
-                    for (var medicine in globalBloc.medicineList$!.value) {
-                      if (medicineName == medicine.medicineName) {
-                        _newEntryBloc.submitError(EntryError.nameDuplicate);
+                TextFormField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Text(
+                  'Dosage (mg):',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.left,
+                ),
+                TextField(
+                  controller: dosageController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(border: OutlineInputBorder()),
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'Additional Notes:',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.left,
+                ),
+                TextFormField(
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                Text(
+                  'Select interval *:',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.left,
+                ),
+                const intervalSelection(),
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'Starting time*',
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.left,
+                ),
+                const SelectTime(),
+                //select medicine on press
+                ElevatedButton(
+                    onPressed: () {
+                      //add medcine
+                      String? medicineName;
+                      int? dosage;
+                      //-----error controller check-----------//
+                      if (nameController.text == '') {
+                        _newEntryBloc.submitError(EntryError.nameNull);
+                        print('Error: Namenull'); //delete from production
                         return;
                       }
-                    }
-                    if (_newEntryBloc.selectedIntervals!.value == 0) {
-                      _newEntryBloc.submitError(EntryError.interval);
-                      return;
-                    }
+                      if (nameController.text != '') {
+                        medicineName = nameController.text;
+                      }
 
-                    if (_newEntryBloc.selectedTimeOfDay$!.value == 'None') {
-                      _newEntryBloc.submitError(EntryError.startTime);
-                      return;
-                    }
+                      if (dosageController.text == '') {
+                        dosage = 0;
+                      }
 
-                    int interval = _newEntryBloc.selectedIntervals!.value;
-                    String startTime = _newEntryBloc.selectedTimeOfDay$!.value;
+                      if (dosageController.text != '') {
+                        dosage = int.parse(dosageController.text);
+                      }
 
-                    List<int> intIDs =
-                        makeIDs(24 / _newEntryBloc.selectedIntervals!.value);
-                    List<String> notificationIDs =
-                        intIDs.map((i) => i.toString()).toList();
+                      for (var medicine in globalBloc.medicineList$!.value) {
+                        if (medicineName == medicine.medicineName) {
+                          _newEntryBloc.submitError(EntryError.nameDuplicate);
+                          print(
+                              'Error: NameDuplicate'); //delete from production
+                          return;
+                        }
+                      }
 
-                    Medicine newEntryMedicine = Medicine(
-                      notificationIDs: notificationIDs,
-                      medicineName: medicineName,
-                      dosage: dosage,
-                      interval: interval,
-                      startTime: startTime,
-                    );
+                      if (_newEntryBloc.selectedInterval$!.value == 0) {
+                        _newEntryBloc.submitError(EntryError.interval);
+                        print('Error: No interval'); //delete from production
+                        return;
+                      }
 
-                    //update medicine list via global bloc
-                    globalBloc.updateMedicineList(
-                      newEntryMedicine,
-                    );
+                      if (_newEntryBloc.selectedTimeOfDay$!.value == 'None') {
+                        _newEntryBloc.submitError(EntryError.startTime);
+                        print(
+                            'Error: Start time not selected'); //delete from production
+                        return;
+                      }
 
-                    //schedule notification
-                    scheduleNotification(newEntryMedicine);
+                      int interval = _newEntryBloc.selectedInterval$!.value;
+                      String startTime =
+                          _newEntryBloc.selectedTimeOfDay$!.value;
 
-                    //print success message on snackbar
-                  },
-                  child: Text('confirm'))
-            ],
+                      List<int> intIDs =
+                          makeIDs(24 / _newEntryBloc.selectedInterval$!.value);
+                      List<String> notificationIDs = intIDs
+                          .map((i) => i.toString())
+                          .toList(); //for shared prefs
+
+                      Medicine newEntryMedicine = Medicine(
+                        notificationIDs: notificationIDs,
+                        medicineName: medicineName,
+                        dosage: dosage,
+                        interval: interval,
+                        startTime: startTime,
+                      );
+
+                      //update medicine list via global bloc
+                      globalBloc.updateMedicineList(
+                        newEntryMedicine,
+                      );
+
+                      //schedule notification
+                      scheduleNotification(newEntryMedicine);
+
+                      //print success message on snackbar
+                    },
+                    child: Text('confirm'))
+              ],
+            ),
           ),
         ),
       ),
@@ -229,7 +244,7 @@ class _NewEntryPageState extends State<NewEntryPage> {
 
     for (int i = 0; i < (24 / medicine.interval!.floor()); i++) {
       if (hour + (medicine.interval! * i) > 23) {
-        hour = hour + (medicine.interval! * i - 24);
+        hour = hour + (medicine.interval! * i) - 24;
       } else {
         hour = hour + (medicine.interval! * i);
       }
@@ -295,22 +310,23 @@ class SelectTime extends StatefulWidget {
 }
 
 class _SelectTimeState extends State<SelectTime> {
-  TimeOfDay _time = const TimeOfDay(hour: 0, minute: 00);
+  TimeOfDay _time = TimeOfDay.now();
   bool clicked = false;
 
   Future<TimeOfDay> _selectedTime() async {
-    final NewEntryBloc newEntryBloc =
+    final NewEntryBloc _newEntryBloc =
         Provider.of<NewEntryBloc>(context, listen: false);
+
     final TimeOfDay? picked =
         await showTimePicker(context: context, initialTime: _time);
 
-    if (picked != null && picked != _time) {
+    if (picked != null) {
       setState(() {
         _time = picked;
         clicked = true;
-       
 
-        newEntryBloc.updateTime(convertTime(_time.hour.toString())+convertTime(_time.minute.toString()));
+        _newEntryBloc.updateTime(convertTime(_time.hour.toString()) +
+            convertTime(_time.minute.toString()));
       });
     }
     return picked!;
@@ -363,10 +379,13 @@ void initializeErrorListen(NewEntryBloc _newEntryBloc) {
 }
 
 void displayError(String error) {
-  //use inbuilt snackbar
-
-  //ScaffoldMessenger.of(context).showSnackBar(
-  //content: Text(error), duration: Duration(milliseconds: 2000));
+  // _scaffoldKey.currentState.showSnackBar(
+  //   SnackBar(
+  //     backgroundColor: Colors.red,
+  //     content: Text(error),
+  //     duration: Duration(milliseconds: 2000),
+  //   ),
+  // );
 }
 
 List<int> makeIDs(double n) {

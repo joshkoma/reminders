@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:reminders/global_bloc.dart';
 import 'package:reminders/models/new_entry.dart';
@@ -53,8 +52,8 @@ class reminders extends StatelessWidget {
             )
           ],
         ),
-        floatingActionButton: GestureDetector(
-          onTap: () {
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
             Navigator.push(context,
                 MaterialPageRoute(builder: (context) => const NewEntryPage()));
           }, //add entries on  tap

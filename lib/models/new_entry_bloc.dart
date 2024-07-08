@@ -8,7 +8,7 @@ class NewEntryBloc {
       _selectedMedicineType$!.stream;
 
   BehaviorSubject<int>? _selectedInterval$;
-  BehaviorSubject<int>? get selectedIntervals => _selectedInterval$;
+  BehaviorSubject<int>? get selectedInterval$ => _selectedInterval$;
 
   BehaviorSubject<String>? _selectedTimeOfDay$;
   BehaviorSubject<String>? get selectedTimeOfDay$ => _selectedTimeOfDay$;
