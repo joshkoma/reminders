@@ -39,6 +39,7 @@ dependencies:
   provider:
   shared_preferences:
   flutter_local_notifications:
+  timezone:
 
 dev_dependencies:
   flutter_test:
