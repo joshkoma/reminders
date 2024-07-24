@@ -248,10 +248,10 @@ class _NewEntryPageState extends State<NewEntryPage> {
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics);
 
-         var now = tz.TZDateTime.now(tz.local);
+    var now = tz.TZDateTime.now(tz.local);
     var scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute, 0);
-
+        tz.TZDateTime(tz.local, now.year, now.month, now.day, 0, 2, 0);
+    // tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute, 0);
 
     for (int i = 0; i < (24 / medicine.interval!).floor(); i++) {
       if (hour + (medicine.interval! * i) > 23) {
@@ -260,7 +260,7 @@ class _NewEntryPageState extends State<NewEntryPage> {
         hour = hour + (medicine.interval! * i);
       }
       await flutterLocalNotificationsPlugin.zonedSchedule(
-         int.parse(medicine.notificationIDs![i]),
+        int.parse(medicine.notificationIDs![i]),
         'Reminder: ${medicine.medicineName}',
         'Take medicine Description',
         scheduledDate,
@@ -270,17 +270,15 @@ class _NewEntryPageState extends State<NewEntryPage> {
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
 
-        
-        
-          //     0225,
-          //     // int.parse(medicine.notificationIDs![i]),
-          //     'Reminder: ${medicine.medicineName}',
-          //     'It is time to take your medicine',
-          //     platformChannelSpecifics);
-          // // RepeatInterval.everyMinute, //check minute 11 of local notification
-          // // platformChannelSpecifics);
-          );
-         scheduledDate = scheduledDate.add(Duration(hours: medicine.interval!));
+        //     0225,
+        //     // int.parse(medicine.notificationIDs![i]),
+        //     'Reminder: ${medicine.medicineName}',
+        //     'It is time to take your medicine',
+        //     platformChannelSpecifics);
+        // // RepeatInterval.everyMinute, //check minute 11 of local notification
+        // // platformChannelSpecifics);
+      );
+      scheduledDate = scheduledDate.add(Duration(hours: medicine.interval!));
 
       // hour = ogValue;
     }
