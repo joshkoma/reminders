@@ -5,70 +5,79 @@ import 'package:reminders/models/new_entry.dart';
 import 'package:reminders/models/medicine.dart';
 import 'package:reminders/screens/medicine_details.dart';
 
-class reminders extends StatelessWidget {
+class reminders extends StatefulWidget {
   const reminders({super.key});
+
+  @override
+  State<reminders> createState() => _remindersState();
+}
+
+class _remindersState extends State<reminders> {
+  @override
+  void initState() {
+    super.initState();  
+  }
 
   @override
   Widget build(BuildContext context) {
     // final GlobalBloc globalBloc = Provider.of<GlobalBloc>(context);
-      return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.lightGreen,
-          title: Text(
-            'Prescription reminder',
-            style: TextStyle(color: Colors.white),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.lightGreen,
+        title: Text(
+          'Prescription reminder',
+          style: TextStyle(color: Colors.white),
         ),
-        body: Column(
-          children: [
-            SizedBox(
-              height: 16,
-            ),
-            Row(children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Icon(Icons.alarm),
-              ),
-              Text(
-                'Prescription Reminder',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-            ]),
-            const SizedBox(
-              height: 10,
+      ),
+      body: Column(
+        children: [
+          SizedBox(
+            height: 16,
+          ),
+          Row(children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Icon(Icons.alarm),
             ),
             Text(
-              'Set a reminder for your medicines',
-              textAlign: TextAlign.left,
-              style: Theme.of(context).textTheme.bodyLarge,
+              'Prescription Reminder',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-
-            //return medicine count from sharedpreferences
-            TopContainer(),
-
-            Flexible(
-              child: BottomContainer(),
-            )
-          ],
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const NewEntryPage()));
-          }, //add entries on  tap
-          child: Card(
-            elevation: 8,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-            child: Icon(
-              Icons.add,
-              size: 60,
-            ),
-            color: Color(0xff9cc224),
+          ]),
+          const SizedBox(
+            height: 10,
           ),
+          Text(
+            'Set a reminder for your medicines',
+            textAlign: TextAlign.left,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+
+          //return medicine count from sharedpreferences
+          TopContainer(),
+
+          Flexible(
+            child: BottomContainer(),
+          )
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const NewEntryPage()));
+        }, //add entries on  tap
+        child: Card(
+          elevation: 8,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          child: Icon(
+            Icons.add,
+            size: 60,
+          ),
+          color: Color(0xff9cc224),
         ),
-      );
-    
+      ),
+    );
   }
 }
 

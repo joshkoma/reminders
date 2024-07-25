@@ -9,6 +9,7 @@ import 'package:reminders/models/medicine.dart';
 import 'package:reminders/models/new_entry_bloc.dart';
 import 'package:reminders/screens/reminders.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 
 class NewEntryPage extends StatefulWidget {
   const NewEntryPage({super.key});
@@ -20,7 +21,8 @@ class NewEntryPage extends StatefulWidget {
 class _NewEntryPageState extends State<NewEntryPage> {
   late TextEditingController nameController;
   late TextEditingController dosageController;
-  late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  //initialize instance of plugin
+  late FlutterLocalNotificationsPlugin _notifications;
   late NewEntryBloc _newEntryBloc;
   late GlobalKey<ScaffoldState> _scaffoldKey;
 
@@ -38,10 +40,12 @@ class _NewEntryPageState extends State<NewEntryPage> {
     _newEntryBloc = NewEntryBloc();
     nameController = TextEditingController();
     dosageController = TextEditingController();
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    _notifications = FlutterLocalNotificationsPlugin();
     _newEntryBloc = NewEntryBloc();
     _scaffoldKey = GlobalKey<ScaffoldState>();
     initializeNotifications();
+    //initialize timezone
+    tz.initializeTimeZones();
     initializeErrorListen(_newEntryBloc);
   }
 
@@ -69,6 +73,17 @@ class _NewEntryPageState extends State<NewEntryPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ElevatedButton(
+                    onPressed: testNotification,
+                    child: Text('Test notification')),
+
+                ElevatedButton(
+                    onPressed: periodicNotificationTest,
+                    child: Text('Periodic notification')),
+                ElevatedButton(
+                    onPressed: cancelTest,
+                    child: Text('Cancel All notifications')),
+
                 const SizedBox(
                   height: 20,
                 ),
@@ -217,14 +232,74 @@ class _NewEntryPageState extends State<NewEntryPage> {
 
   initializeNotifications() async {
     var initializationSettingsAndroid =
-        const AndroidInitializationSettings('assets/images/logo.png');
+        const AndroidInitializationSettings('@mipmap/ic_launcher');
     var initializationSettingsIOS = const DarwinInitializationSettings();
     var initializationSettings = InitializationSettings(
         iOS: initializationSettingsIOS, android: initializationSettingsAndroid);
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    //error handling
+    try {
+      await _notifications.initialize(
+        initializationSettings,
+      );
+      print("Notifications initialized successfully.");
+    } catch (e) {
+      print("Error initializing notifications: $e");
+    }
   }
 
+  //display test notification
+  Future testNotification() async {
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'TestID',
+      'ScheduledID',
+      channelDescription: 'RepeatID',
+      importance: Importance.max,
+      channelShowBadge: true,
+      ticker: 'ticker',
+    );
+
+    const NotificationDetails notificationDetails =
+        NotificationDetails(android: androidNotificationDetails);
+    _notifications.show(
+        10, 'testnotification', 'this is a test', notificationDetails);
+  }
+
+//cancel all notifications
+  Future cancelTest() async {
+    print('All notifications cancelled');
+    _notifications.cancelAll();
+  }
+
+//test periodic notifications
+  Future periodicNotificationTest() async {
+    print('Periodic Notification Triggered');
+
+    //define notification details
+    const AndroidNotificationDetails androidNotificationDetails =
+        AndroidNotificationDetails(
+      'periodic channel id',
+      'repeating channel name',
+      channelDescription: 'repeating description',
+      importance: Importance.max,
+      channelShowBadge: true,
+      ticker: 'ticker',
+    );
+
+    const NotificationDetails notificationDetails2 =
+        NotificationDetails(android: androidNotificationDetails);
+
+    await _notifications.periodicallyShow(
+        7,
+        'Periodic Notification',
+        'This is a periodic notification',
+        RepeatInterval.everyMinute,
+        notificationDetails2,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle);
+  }
+
+//redirect to reminder page
   Future onSelectNotification(String? payload) async {
     if (payload != null) {
       debugPrint('notification payload: $payload');
@@ -235,12 +310,12 @@ class _NewEntryPageState extends State<NewEntryPage> {
 
   Future<void> scheduleNotification(Medicine medicine) async {
     var hour = int.parse(medicine.startTime![0] + medicine.startTime![1]);
-    var ogValue = hour;
     var minute = int.parse(medicine.startTime![2] + medicine.startTime![3]);
+    print('{Parsed Hour is $hour and minute is $minute}');
 
     var androidPlatformChannelSpecifics = const AndroidNotificationDetails(
         'repeatDailyAtTime channel id', 'repeatDailyAtTime channel name',
-        importance: Importance.max);
+        importance: Importance.max, ticker: 'ticker');
 
     var iOSPlatformChannelSpecifics = const DarwinNotificationDetails();
 
@@ -249,38 +324,37 @@ class _NewEntryPageState extends State<NewEntryPage> {
         iOS: iOSPlatformChannelSpecifics);
 
     var now = tz.TZDateTime.now(tz.local);
-    var scheduledDate =
-        tz.TZDateTime(tz.local, now.year, now.month, now.day, 0, 2, 0);
-    // tz.TZDateTime(tz.local, now.year, now.month, now.day, hour, minute, 0);
+    var scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute,
+    );
+    int hour2 = now.hour;
+    int minute2 = now.minute;
+    print({'the hour is $hour2 and minute is  $minute2'}); // time is correct
 
     for (int i = 0; i < (24 / medicine.interval!).floor(); i++) {
-      if (hour + (medicine.interval! * i) > 23) {
-        hour = hour + (medicine.interval! * i) - 24;
-      } else {
-        hour = hour + (medicine.interval! * i);
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
       }
-      await flutterLocalNotificationsPlugin.zonedSchedule(
+
+      await _notifications.zonedSchedule(
         int.parse(medicine.notificationIDs![i]),
         'Reminder: ${medicine.medicineName}',
-        'Take medicine Description',
+        'It is time to take your medicine',
         scheduledDate,
         platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.alarmClock,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
-
-        //     0225,
-        //     // int.parse(medicine.notificationIDs![i]),
-        //     'Reminder: ${medicine.medicineName}',
-        //     'It is time to take your medicine',
-        //     platformChannelSpecifics);
-        // // RepeatInterval.everyMinute, //check minute 11 of local notification
-        // // platformChannelSpecifics);
       );
-      scheduledDate = scheduledDate.add(Duration(hours: medicine.interval!));
+      print('notification scheduled with ID $i');
 
-      // hour = ogValue;
+      scheduledDate = scheduledDate.add(Duration(seconds: 30));
     }
   }
 }
